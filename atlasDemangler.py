@@ -1,11 +1,13 @@
-import os
 import sys
+from pathlib import Path
 from PIL import Image
 
 def extract_images(image_map_path, coords_file_path):
     # Determine the base directory (MainFolder)
-    base_dir = os.path.abspath(os.path.join(os.path.dirname(image_map_path), os.pardir))
-    img_dir = os.path.join(base_dir, "img")
+    image_map_path = Path(image_map_path)
+    coords_file_path = Path(coords_file_path)
+    base_dir = image_map_path.parent.parent
+    img_dir = base_dir / "img"
     
     # Open the large image map
     try:
@@ -16,7 +18,7 @@ def extract_images(image_map_path, coords_file_path):
     
     # Read the coordinates file
     try:
-        with open(coords_file_path, "r", encoding="utf-8") as f:
+        with coords_file_path.open("r", encoding="utf-8") as f:
             lines = f.readlines()
     except Exception as e:
         print(f"Error reading coordinates file: {e}")
@@ -29,11 +31,11 @@ def extract_images(image_map_path, coords_file_path):
             continue
         
         rel_path, x, y, width, height = parts[0], int(parts[1]), int(parts[2]), int(parts[3]), int(parts[4])
-        output_path = os.path.join(base_dir, rel_path)
-        output_dir = os.path.dirname(output_path)
+        output_path = base_dir / rel_path
+        output_dir = output_path.parent
         
         # Create the target directory if it does not exist
-        os.makedirs(output_dir, exist_ok=True)
+        output_dir.mkdir(parents=True, exist_ok=True)
         
         # Crop the image and save it
         try:
@@ -45,7 +47,7 @@ def extract_images(image_map_path, coords_file_path):
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("Usage: imageDemangler.py [atlas.png] [atlas.txt]")
+        print("Usage: imageDemangler.py [imageMap.png] [imageCoords.txt]")
         sys.exit(1)
     
     extract_images(sys.argv[1], sys.argv[2])
